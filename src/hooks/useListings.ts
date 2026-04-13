@@ -1,81 +1,95 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchSkillsFromGitHub, fetchPluginsFromGitHub } from "@/lib/github";
-import { mockSkills, mockPlugins, mockJobs, Listing } from "@/data/mockData";
-import { applyOverrides, getSubmissions } from "@/lib/adminStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Listing, Ad } from "@/data/mockData";
 
-function mergeAndDedupe(githubItems: Listing[], mockItems: Listing[]): Listing[] {
-  const ghNames = new Set(githubItems.map((i) => i.name.toLowerCase()));
-  const unique = mockItems.filter((m) => !ghNames.has(m.name.toLowerCase()));
-  return [...githubItems, ...unique];
+export function useListings(type?: string) {
+  return useQuery<Listing[]>({
+    queryKey: ["/api/listings", type],
+    queryFn: () => api.getListings({ type }),
+    staleTime: 2 * 60 * 1000,
+  });
 }
 
 export function useSkills() {
   return useQuery<Listing[]>({
-    queryKey: ["/listings/skills"],
-    queryFn: async () => {
-      try {
-        const gh = await fetchSkillsFromGitHub();
-        const merged = mergeAndDedupe(gh, mockSkills);
-        const approved = getSubmissions()
-          .filter((s) => s.type === "skill" && s.status === "approved")
-          .map(({ submitted_at, submitter_email, ...l }) => l as Listing);
-        return applyOverrides([...approved, ...merged]);
-      } catch {
-        const approved = getSubmissions()
-          .filter((s) => s.type === "skill" && s.status === "approved")
-          .map(({ submitted_at, submitter_email, ...l }) => l as Listing);
-        return applyOverrides([...approved, ...mockSkills]);
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    queryKey: ["/api/listings", "skill"],
+    queryFn: () => api.getListings({ type: "skill" }),
+    staleTime: 2 * 60 * 1000,
   });
 }
 
 export function usePlugins() {
   return useQuery<Listing[]>({
-    queryKey: ["/listings/plugins"],
-    queryFn: async () => {
-      try {
-        const gh = await fetchPluginsFromGitHub();
-        const merged = mergeAndDedupe(gh, mockPlugins);
-        const approved = getSubmissions()
-          .filter((s) => s.type === "plugin" && s.status === "approved")
-          .map(({ submitted_at, submitter_email, ...l }) => l as Listing);
-        return applyOverrides([...approved, ...merged]);
-      } catch {
-        const approved = getSubmissions()
-          .filter((s) => s.type === "plugin" && s.status === "approved")
-          .map(({ submitted_at, submitter_email, ...l }) => l as Listing);
-        return applyOverrides([...approved, ...mockPlugins]);
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    queryKey: ["/api/listings", "plugin"],
+    queryFn: () => api.getListings({ type: "plugin" }),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useMcpServers() {
+  return useQuery<Listing[]>({
+    queryKey: ["/api/listings", "mcp_server"],
+    queryFn: () => api.getListings({ type: "mcp_server" }),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useTemplates() {
+  return useQuery<Listing[]>({
+    queryKey: ["/api/listings", "template"],
+    queryFn: () => api.getListings({ type: "template" }),
+    staleTime: 2 * 60 * 1000,
   });
 }
 
 export function useJobs() {
   return useQuery<Listing[]>({
-    queryKey: ["/listings/jobs"],
-    queryFn: async () => {
-      const approved = getSubmissions()
-        .filter((s) => s.type === "job" && s.status === "approved")
-        .map(({ submitted_at, submitter_email, ...l }) => l as Listing);
-      return applyOverrides([...approved, ...mockJobs]);
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: ["/api/listings", "job"],
+    queryFn: () => api.getListings({ type: "job" }),
+    staleTime: 2 * 60 * 1000,
   });
 }
 
 export function useAllListings() {
+  const mcp = useMcpServers();
   const skills = useSkills();
   const plugins = usePlugins();
+  const templates = useTemplates();
   const jobs = useJobs();
   return {
-    isLoading: skills.isLoading || plugins.isLoading || jobs.isLoading,
+    isLoading: mcp.isLoading || skills.isLoading || plugins.isLoading || templates.isLoading || jobs.isLoading,
+    mcp: mcp.data || [],
     skills: skills.data || [],
     plugins: plugins.data || [],
+    templates: templates.data || [],
     jobs: jobs.data || [],
+    all: [...(mcp.data || []), ...(skills.data || []), ...(plugins.data || []), ...(templates.data || []), ...(jobs.data || [])],
   };
+}
+
+export function useListing(id: number | string) {
+  return useQuery<Listing>({
+    queryKey: ["/api/listings", id],
+    queryFn: () => api.getListing(Number(id)),
+    enabled: !!id && !isNaN(Number(id)),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAds() {
+  return useQuery<Ad[]>({
+    queryKey: ["/api/ads"],
+    queryFn: () => api.getAds(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUpvote(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.upvoteListing(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/listings"] });
+    },
+  });
 }

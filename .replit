@@ -37,3 +37,9 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+ADMIN_PASSWORD = "openclaw2026"
+PORT = "3001"
