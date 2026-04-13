@@ -47,3 +47,4 @@ externalPort = 80
 [userenv.shared]
 ADMIN_PASSWORD = "openclaw2026"
 PORT = "3001"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_WlXdxO5aey8R@ep-spring-hill-an3dzfe3-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
