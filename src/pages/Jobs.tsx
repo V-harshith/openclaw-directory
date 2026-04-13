@@ -1,27 +1,31 @@
 import { useState, useMemo } from "react";
-import { Search, MapPin, Clock, DollarSign } from "lucide-react";
+import { Search, MapPin, Clock, DollarSign, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Layout } from "@/components/Layout";
 import { AdBanner } from "@/components/AdBanner";
-import { mockJobs, mockAds, JOB_TYPES } from "@/data/mockData";
-import { Sparkles } from "lucide-react";
+import { mockAds, JOB_TYPES } from "@/data/mockData";
+import { useJobs } from "@/hooks/useListings";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 export default function JobsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
 
+  const { data: jobs, isLoading } = useJobs();
+
   const headerAd = mockAds.find((a) => a.placement === "header");
   const inContentAd = mockAds.find((a) => a.placement === "in-content");
 
   const filtered = useMemo(() => {
-    let items = [...mockJobs];
+    let items = [...(jobs || [])];
     if (search) items = items.filter((j) => j.name.toLowerCase().includes(search.toLowerCase()) || j.description.toLowerCase().includes(search.toLowerCase()) || j.company?.toLowerCase().includes(search.toLowerCase()));
     if (typeFilter !== "All") items = items.filter((j) => j.job_type === typeFilter);
     const sponsored = items.filter((j) => j.is_sponsored);
     const rest = items.filter((j) => !j.is_sponsored);
     return [...sponsored, ...rest];
-  }, [search, typeFilter]);
+  }, [search, typeFilter, jobs]);
 
   return (
     <Layout>
@@ -33,7 +37,7 @@ export default function JobsPage() {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search jobs..." className="pl-10 bg-card border-border" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search jobs..." className="pl-10 bg-card border-border" data-testid="input-search-jobs" />
           </div>
         </div>
 
@@ -47,27 +51,31 @@ export default function JobsPage() {
         </div>
 
         <div className="space-y-3">
-          {filtered.map((job, i) => (
-            <div key={job.id}>
-              <div className={`card-hover rounded-xl border bg-card p-5 relative ${job.is_sponsored ? "border-primary/30 bg-primary/[0.03]" : "border-border"}`}>
-                {job.is_sponsored && (
-                  <Badge className="absolute top-3 right-3 bg-primary/15 text-primary border-primary/30 text-[10px]">
-                    <Sparkles className="h-3 w-3 mr-1" />Sponsored
-                  </Badge>
-                )}
-                <h3 className="font-semibold text-lg">{job.name}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{job.description}</p>
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
-                  {job.company && <span className="font-medium text-foreground">{job.company}</span>}
-                  {job.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>}
-                  {job.job_type && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{job.job_type}</span>}
-                  {job.salary_range && <span className="flex items-center gap-1 text-primary font-medium"><DollarSign className="h-3 w-3" />{job.salary_range}</span>}
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
+            : filtered.map((job, i) => (
+                <div key={job.id}>
+                  <Link to={`/jobs/${job.id}`}>
+                    <div className={`card-hover rounded-xl border bg-card p-5 relative ${job.is_sponsored ? "border-primary/30 bg-primary/[0.03]" : "border-border"}`}>
+                      {job.is_sponsored && (
+                        <Badge className="absolute top-3 right-3 bg-primary/15 text-primary border-primary/30 text-[10px]">
+                          <Sparkles className="h-3 w-3 mr-1" />Sponsored
+                        </Badge>
+                      )}
+                      <h3 className="font-semibold text-lg">{job.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{job.description}</p>
+                      <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
+                        {job.company && <span className="font-medium text-foreground">{job.company}</span>}
+                        {job.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.location}</span>}
+                        {job.job_type && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{job.job_type}</span>}
+                        {job.salary_range && <span className="flex items-center gap-1 text-primary font-medium"><DollarSign className="h-3 w-3" />{job.salary_range}</span>}
+                      </div>
+                    </div>
+                  </Link>
+                  {i === 1 && inContentAd && <div className="my-3"><AdBanner ad={inContentAd} /></div>}
                 </div>
-              </div>
-              {i === 1 && inContentAd && <div className="my-3"><AdBanner ad={inContentAd} /></div>}
-            </div>
-          ))}
-          {filtered.length === 0 && <div className="text-center py-20 text-muted-foreground">No jobs found.</div>}
+              ))}
+          {!isLoading && filtered.length === 0 && <div className="text-center py-20 text-muted-foreground">No jobs found.</div>}
         </div>
       </div>
     </Layout>

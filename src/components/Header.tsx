@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { Search, Menu, X } from "lucide-react";
+import { Menu, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { isAdminLoggedIn } from "@/lib/adminStore";
 
 const navLinks = [
   { label: "Skills", to: "/skills" },
@@ -12,6 +13,7 @@ const navLinks = [
 export function Header() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const adminLoggedIn = isAdminLoggedIn();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -42,6 +44,13 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          {adminLoggedIn && (
+            <Link to="/admin">
+              <Button size="sm" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5">
+                <Shield className="h-3.5 w-3.5" /> Admin
+              </Button>
+            </Link>
+          )}
           <Link to="/submit">
             <Button size="sm" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10">
               Submit Listing
@@ -57,6 +66,7 @@ export function Header() {
         <button
           className="md:hidden p-2 text-muted-foreground"
           onClick={() => setMobileOpen(!mobileOpen)}
+          data-testid="button-mobile-menu"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -86,6 +96,13 @@ export function Header() {
               <Button size="sm" className="w-full bg-primary text-primary-foreground">Sign In</Button>
             </Link>
           </div>
+          {adminLoggedIn && (
+            <Link to="/admin" onClick={() => setMobileOpen(false)}>
+              <Button size="sm" variant="outline" className="w-full border-primary/30 text-primary gap-1.5 mt-1">
+                <Shield className="h-3.5 w-3.5" /> Admin Dashboard
+              </Button>
+            </Link>
+          )}
         </div>
       )}
     </header>

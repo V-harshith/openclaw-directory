@@ -10,9 +10,17 @@ import Jobs from "./pages/Jobs.tsx";
 import Detail from "./pages/Detail.tsx";
 import Submit from "./pages/Submit.tsx";
 import Login from "./pages/Login.tsx";
+import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,6 +38,7 @@ const App = () => (
           <Route path="/jobs/:id" element={<Detail />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
