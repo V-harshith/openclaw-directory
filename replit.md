@@ -1,39 +1,58 @@
-# AIDir - AI Skills & Plugins Directory
+# OpenClaw
 
-## Overview
-A React/TypeScript frontend application that serves as a directory for AI assistant skills and plugins. Built with Vite, Tailwind CSS, and shadcn/ui components. Originally developed on Lovable, migrated to Replit.
+An AI tools marketplace and directory for discovering MCP servers, Skills, Plugins, Templates, and Jobs in the AI ecosystem.
 
-## Architecture
-- **Type**: Pure frontend SPA (Single Page Application)
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Routing**: React Router v6
-- **State/Data**: TanStack Query (React Query)
-- **Forms**: React Hook Form + Zod validation
+## Tech Stack
+
+- **Frontend**: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, React Router v6
+- **Backend**: Node.js + Express.js, running on port 3001
+- **Database**: PostgreSQL (Replit built-in) via Drizzle ORM
+- **Shared**: Zod schemas via drizzle-zod
 
 ## Project Structure
+
 ```
-src/
-  App.tsx          - Root component with routing
-  main.tsx         - Entry point
-  pages/           - Page components (Index, Skills, Plugins, Jobs, Detail, Login, Submit, NotFound)
-  components/      - Shared components (Header, Footer, Layout, NavLink, ListingCard, AdBanner, ui/)
-  data/            - Static data files
-  hooks/           - Custom React hooks
-  lib/             - Utility functions
+/src          - React frontend application
+  /components - Reusable UI components (shadcn/ui)
+  /pages      - Top-level views (Index, Jobs, Plugins, Skills, Admin, Submit)
+  /lib        - API client (api.ts) and utilities
+  /hooks      - Custom React hooks
+/server       - Express backend API
+  index.ts    - Entry point, DB migration and seeding
+  routes.ts   - API endpoint definitions
+  db.ts       - Database connection (Drizzle + pg Pool)
+  storage.ts  - Data access layer
+/shared       - Shared code between frontend and backend
+  schema.ts   - Drizzle table definitions and Zod validation schemas
+/public       - Static assets
 ```
 
-## Dev Server
-- Runs on port 5000
-- Command: `npm run dev`
-- Accessible via Replit webview
+## Running the App
 
-## Key Dependencies
-- React 18, React Router v6, TanStack Query
-- Tailwind CSS, shadcn/ui (Radix UI primitives)
-- Recharts, Lucide icons, Sonner (toasts)
+The app uses `concurrently` to run both the backend API server and Vite dev server together:
 
-## Notes
-- `lovable-tagger` dev dependency removed from vite.config.ts (not needed on Replit)
-- Vite server configured for Replit: `host: "0.0.0.0"`, `allowedHosts: true`, `port: 5000`
+```
+npm run start
+```
+
+- Frontend (Vite): port 5000
+- Backend (Express API): port 3001
+- Vite proxies `/api` requests to the backend
+
+## Environment Variables
+
+- `DATABASE_URL` - PostgreSQL connection string (auto-set by Replit)
+- `PORT` - Backend API port (default: 3001)
+- `ADMIN_PASSWORD` - Password for the admin dashboard (set in .replit userenv)
+- `JWT_SECRET` - Secret for JWT token signing (optional, falls back to default)
+
+## Database
+
+The app automatically runs migrations and seeds data on startup (in `server/index.ts`). Three main tables:
+- `listings` - MCP servers, skills, plugins, templates, jobs
+- `submissions` - User-submitted listings awaiting review
+- `ads` - Sponsored ad placements
+
+## Admin Access
+
+Navigate to `/admin` and use the `ADMIN_PASSWORD` environment variable value to log in.
