@@ -30,7 +30,6 @@ const TYPE_LABELS: Record<string, string> = {
 export default function DetailPage() {
   const { id } = useParams();
   const location = useLocation();
-  const pathType = location.pathname.split("/")[1];
 
   const { data: listing, isLoading, error } = useListing(id || "");
   const { data: ads } = useAds();
@@ -38,6 +37,44 @@ export default function DetailPage() {
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");
   const footerAd = ads?.find((a) => a.placement === "footer");
+
+  const backPath = listing ? `/${TYPE_TO_PATH[listing.type] || `${listing.type}s`}` : "/";
+  const backLabel = listing ? (TYPE_LABELS[listing.type] || listing.type) : "";
+
+  useSEO({
+    title: listing
+      ? `${listing.name} — ${TYPE_LABELS[listing.type] || listing.type} | OpenClaw`
+      : "OpenClaw — AI Tools Directory",
+    description: listing
+      ? `${listing.description} Find more AI tools, MCP servers and agent skills on OpenClaw.`
+      : undefined,
+    canonical: listing ? `https://openclaw.io${backPath}/${listing.id}` : undefined,
+  });
+
+  useEffect(() => {
+    if (!listing) return;
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": listing.type === "job" ? "JobPosting" : "SoftwareApplication",
+      "name": listing.name,
+      "description": listing.description,
+      "author": { "@type": "Organization", "name": listing.author },
+      ...(listing.type === "job" ? {
+        "hiringOrganization": { "@type": "Organization", "name": (listing as any).company || listing.author },
+        "jobLocation": { "@type": "Place", "name": (listing as any).location || "Remote" },
+        "employmentType": (listing as any).job_type || "FULL_TIME",
+        "baseSalary": (listing as any).salary_range ? { "@type": "MonetaryAmount", "currency": "USD", "value": (listing as any).salary_range } : undefined,
+      } : {}),
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.text = JSON.stringify(structuredData);
+    script.id = "listing-structured-data";
+    const existing = document.getElementById("listing-structured-data");
+    if (existing) existing.remove();
+    document.head.appendChild(script);
+    return () => { script.remove(); };
+  }, [listing?.id]);
 
   const handleUpvote = async () => {
     try {
@@ -78,46 +115,10 @@ export default function DetailPage() {
     );
   }
 
-  const backPath = `/${TYPE_TO_PATH[listing.type] || `${listing.type}s`}`;
-  const backLabel = TYPE_LABELS[listing.type] || listing.type;
   const isGitHub = !!(listing as any).github_url;
   const githubUrl = (listing as any).github_url;
   const stars = (listing as any).stars;
   const createdDate = listing.created_at ? new Date(listing.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "";
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": listing.type === "job" ? "JobPosting" : "SoftwareApplication",
-    "name": listing.name,
-    "description": listing.description,
-    "author": {
-      "@type": "Organization",
-      "name": listing.author,
-    },
-    ...(listing.type === "job" ? {
-      "hiringOrganization": { "@type": "Organization", "name": (listing as any).company || listing.author },
-      "jobLocation": { "@type": "Place", "name": (listing as any).location || "Remote" },
-      "employmentType": (listing as any).job_type || "FULL_TIME",
-      "baseSalary": (listing as any).salary_range ? { "@type": "MonetaryAmount", "currency": "USD", "value": (listing as any).salary_range } : undefined,
-    } : {}),
-  };
-
-  useSEO({
-    title: `${listing.name} — ${TYPE_LABELS[listing.type] || listing.type} | OpenClaw`,
-    description: `${listing.description} Find more AI tools, MCP servers and agent skills on OpenClaw.`,
-    canonical: `https://openclaw.io${backPath}/${listing.id}`,
-  });
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.text = JSON.stringify(structuredData);
-    script.id = "listing-structured-data";
-    const existing = document.getElementById("listing-structured-data");
-    if (existing) existing.remove();
-    document.head.appendChild(script);
-    return () => { script.remove(); };
-  }, [listing.id]);
 
   return (
     <Layout>

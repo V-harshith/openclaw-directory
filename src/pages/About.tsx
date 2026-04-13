@@ -2,14 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useSEO } from "@/hooks/useSEO";
 import { Link } from "react-router-dom";
 import { Server, Zap, Puzzle, FileCode, Briefcase, ArrowRight, CheckCircle } from "lucide-react";
-
-const stats = [
-  { label: "MCP Servers", value: "50+", icon: Server },
-  { label: "Agent Skills", value: "100+", icon: Zap },
-  { label: "Plugins", value: "80+", icon: Puzzle },
-  { label: "Templates", value: "30+", icon: FileCode },
-  { label: "AI Jobs", value: "200+", icon: Briefcase },
-];
+import { useSkills, usePlugins, useMcpServers, useTemplates, useJobs } from "@/hooks/useListings";
 
 const features = [
   "Curated and community-submitted AI tools",
@@ -21,11 +14,25 @@ const features = [
 ];
 
 export default function AboutPage() {
+  const { data: mcpServers } = useMcpServers();
+  const { data: skills } = useSkills();
+  const { data: plugins } = usePlugins();
+  const { data: templates } = useTemplates();
+  const { data: jobs } = useJobs();
+
   useSEO({
     title: "About OpenClaw — The AI Tools Directory",
     description: "OpenClaw is the open directory for AI MCP servers, agent skills, plugins, templates and jobs. Learn about our mission to make AI tools discoverable.",
     canonical: "https://openclaw.io/about",
   });
+
+  const stats = [
+    { label: "MCP Servers", value: `${mcpServers?.length || 0}`, icon: Server },
+    { label: "Agent Skills", value: `${skills?.length || 0}`, icon: Zap },
+    { label: "Plugins", value: `${plugins?.length || 0}`, icon: Puzzle },
+    { label: "Templates", value: `${templates?.length || 0}`, icon: FileCode },
+    { label: "AI Jobs", value: `${jobs?.length || 0}`, icon: Briefcase },
+  ];
 
   return (
     <Layout>

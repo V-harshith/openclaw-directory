@@ -11,6 +11,8 @@ import { eq } from "drizzle-orm";
 const app = express();
 const PORT = parseInt(process.env.PORT || "3001");
 
+app.set("trust proxy", 1);
+
 if (!process.env.JWT_SECRET) {
   console.warn("⚠️  JWT_SECRET not set — using insecure default. Set JWT_SECRET env var in production.");
 }

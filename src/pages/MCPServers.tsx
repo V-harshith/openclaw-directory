@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Server, Github, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Layout } from "@/components/Layout";
@@ -8,13 +8,20 @@ import { useAds, useMcpServers } from "@/hooks/useListings";
 import { useSEO } from "@/hooks/useSEO";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MCP_CATEGORIES } from "@/data/mockData";
+import { useSearchParams } from "react-router-dom";
 
 const SORT_OPTIONS = ["Popular", "Newest", "Most Viewed"];
 
 export default function MCPServersPage() {
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("Popular");
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    setSearch(q);
+  }, [searchParams]);
 
   const { data: mcpServers, isLoading, error } = useMcpServers();
   const { data: ads } = useAds();

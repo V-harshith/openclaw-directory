@@ -52,7 +52,6 @@ export function Footer() {
             <div className="space-y-2.5">
               <a href="#" className="block text-[13px] text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a>
               <a href="#" className="block text-[13px] text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
-              <Link to="/admin" className="block text-[13px] text-muted-foreground hover:text-foreground transition-colors">Admin</Link>
             </div>
           </div>
         </div>

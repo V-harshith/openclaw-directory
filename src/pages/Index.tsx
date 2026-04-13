@@ -3,7 +3,7 @@ import { Search, Zap, Puzzle, Briefcase, ArrowRight, Server, FileCode } from "lu
 import { Layout } from "@/components/Layout";
 import { AdBanner } from "@/components/AdBanner";
 import { ListingCard } from "@/components/ListingCard";
-import { useSkills, usePlugins, useMcpServers, useAds } from "@/hooks/useListings";
+import { useSkills, usePlugins, useMcpServers, useTemplates, useJobs, useAds } from "@/hooks/useListings";
 import { useSEO } from "@/hooks/useSEO";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,8 @@ const Index = () => {
   const { data: skills, isLoading: skillsLoading } = useSkills();
   const { data: plugins, isLoading: pluginsLoading } = usePlugins();
   const { data: mcpServers, isLoading: mcpLoading } = useMcpServers();
+  const { data: templates, isLoading: templatesLoading } = useTemplates();
+  const { data: jobs, isLoading: jobsLoading } = useJobs();
   const { data: ads } = useAds();
 
   useSEO({
@@ -99,11 +101,11 @@ const Index = () => {
           {/* Stats row */}
           <div className="animate-fade-up animate-delay-300 mt-10 flex items-center justify-center gap-6 flex-wrap">
             {[
-              { icon: Server, label: "MCP Servers", value: mcpLoading ? "…" : `${mcpServers?.length || 0}+` },
-              { icon: Zap, label: "Skills", value: skillsLoading ? "…" : `${skills?.length || 0}+` },
-              { icon: Puzzle, label: "Plugins", value: pluginsLoading ? "…" : `${plugins?.length || 0}+` },
-              { icon: FileCode, label: "Templates", value: "30+" },
-              { icon: Briefcase, label: "AI Jobs", value: "200+" },
+              { icon: Server, label: "MCP Servers", value: mcpLoading ? "…" : `${mcpServers?.length || 0}` },
+              { icon: Zap, label: "Skills", value: skillsLoading ? "…" : `${skills?.length || 0}` },
+              { icon: Puzzle, label: "Plugins", value: pluginsLoading ? "…" : `${plugins?.length || 0}` },
+              { icon: FileCode, label: "Templates", value: templatesLoading ? "…" : `${templates?.length || 0}` },
+              { icon: Briefcase, label: "AI Jobs", value: jobsLoading ? "…" : `${jobs?.length || 0}` },
             ].map((stat) => (
               <div key={stat.label} className="flex items-center gap-2 text-[13px] text-muted-foreground">
                 <stat.icon className="h-3.5 w-3.5 text-primary/70" />

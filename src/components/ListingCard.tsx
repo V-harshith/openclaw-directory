@@ -7,10 +7,16 @@ interface ListingCardProps {
   index?: number;
 }
 
+const TYPE_TO_PATH: Record<string, string> = {
+  mcp_server: "mcp-servers",
+  skill: "skills",
+  plugin: "plugins",
+  template: "templates",
+  job: "jobs",
+};
+
 export function ListingCard({ listing, index = 0 }: ListingCardProps) {
-  const detailPath = listing.type === "job"
-    ? `/jobs/${listing.id}`
-    : `/${listing.type}s/${listing.id}`;
+  const detailPath = `/${TYPE_TO_PATH[listing.type] || `${listing.type}s`}/${listing.id}`;
 
   const isGitHub = !!(listing as any).github_url;
   const stars = (listing as any).stars;
