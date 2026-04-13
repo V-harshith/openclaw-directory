@@ -15,15 +15,13 @@ export function AdBanner({ ad, className = "" }: AdBannerProps) {
       rel="noopener noreferrer sponsored"
       className={`block w-full ${className}`}
     >
-      <div className="ad-slot px-4 py-3 hover:border-primary/40 transition-colors cursor-pointer group">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-muted-foreground/20 px-1.5 py-0.5 rounded">
-            Ad
-          </span>
-          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-            {ad.label}
-          </span>
-        </div>
+      <div className="group flex items-center gap-3 px-4 py-3 border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.09] transition-all rounded-lg cursor-pointer">
+        <span className="shrink-0 text-[9px] uppercase tracking-widest font-semibold text-muted-foreground/40 border border-white/[0.08] px-1.5 py-0.5 rounded">
+          ad
+        </span>
+        <span className="text-[12.5px] text-muted-foreground/70 group-hover:text-muted-foreground transition-colors">
+          {ad.label}
+        </span>
       </div>
     </a>
   );
@@ -39,11 +37,11 @@ export function SidebarAd({ ad }: { ad: Ad }) {
       rel="noopener noreferrer sponsored"
       className="block"
     >
-      <div className="ad-slot flex-col gap-2 p-4 hover:border-primary/40 transition-colors cursor-pointer group" style={{ minHeight: "200px" }}>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-muted-foreground/20 px-1.5 py-0.5 rounded">
-          Sponsored
+      <div className="group flex flex-col items-center justify-center gap-3 p-5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all cursor-pointer min-h-[180px] text-center">
+        <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground/35 border border-white/[0.07] px-1.5 py-0.5 rounded">
+          sponsored
         </span>
-        <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors text-center mt-2">
+        <span className="text-[12px] text-muted-foreground/60 group-hover:text-muted-foreground/90 transition-colors leading-relaxed">
           {ad.label}
         </span>
       </div>

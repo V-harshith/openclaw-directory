@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X, Shield, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { isAdminLoggedIn } from "@/lib/adminStore";
 
@@ -16,26 +15,27 @@ export function Header() {
   const adminLoggedIn = isAdminLoggedIn();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+    <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-background/90 backdrop-blur-xl">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4 max-w-6xl">
+
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground tracking-tight">
             AI
           </div>
-          <span className="text-lg font-bold tracking-tight">
-            AI<span className="text-primary">Dir</span>
+          <span className="text-[15px] font-semibold tracking-tight text-foreground">
+            AIDir
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-0.5">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === link.to
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              className={`px-3.5 py-1.5 rounded-md text-[13.5px] font-medium transition-colors ${
+                location.pathname.startsWith(link.to)
+                  ? "text-foreground bg-white/[0.06]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
               }`}
             >
               {link.label}
@@ -43,28 +43,28 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           {adminLoggedIn && (
             <Link to="/admin">
-              <Button size="sm" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 gap-1.5">
+              <button className="btn-ghost flex items-center gap-1.5 h-8 px-3 text-xs">
                 <Shield className="h-3.5 w-3.5" /> Admin
-              </Button>
+              </button>
             </Link>
           )}
           <Link to="/submit">
-            <Button size="sm" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10">
-              Submit Listing
-            </Button>
+            <button className="btn-ghost h-8 px-3 text-[13px]">
+              Submit
+            </button>
           </Link>
           <Link to="/login">
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Sign In
-            </Button>
+            <button className="btn-primary h-8 px-4 text-[13px] flex items-center gap-1.5">
+              Sign in <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </Link>
         </div>
 
         <button
-          className="md:hidden p-2 text-muted-foreground"
+          className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
           onClick={() => setMobileOpen(!mobileOpen)}
           data-testid="button-mobile-menu"
         >
@@ -73,36 +73,29 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background px-4 py-4 space-y-2 animate-fade-in">
+        <div className="md:hidden border-t border-white/[0.05] bg-background px-4 py-4 space-y-1 animate-fade-in">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               onClick={() => setMobileOpen(false)}
-              className={`block px-4 py-2 rounded-lg text-sm font-medium ${
-                location.pathname === link.to
-                  ? "bg-primary/10 text-primary"
+              className={`block px-3 py-2 rounded-md text-sm ${
+                location.pathname.startsWith(link.to)
+                  ? "bg-white/[0.06] text-foreground"
                   : "text-muted-foreground"
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-3">
             <Link to="/submit" className="flex-1" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" variant="outline" className="w-full border-primary/30 text-primary">Submit</Button>
+              <button className="btn-ghost w-full h-9 text-sm">Submit</button>
             </Link>
             <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" className="w-full bg-primary text-primary-foreground">Sign In</Button>
+              <button className="btn-primary w-full h-9 text-sm">Sign in</button>
             </Link>
           </div>
-          {adminLoggedIn && (
-            <Link to="/admin" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" variant="outline" className="w-full border-primary/30 text-primary gap-1.5 mt-1">
-                <Shield className="h-3.5 w-3.5" /> Admin Dashboard
-              </Button>
-            </Link>
-          )}
         </div>
       )}
     </header>

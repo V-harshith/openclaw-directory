@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Eye, ArrowUp, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Star, Eye, Github, Sparkles, ArrowUpRight } from "lucide-react";
 import { Listing, formatNumber, getEmoji } from "@/data/mockData";
 
 interface ListingCardProps {
@@ -13,49 +12,74 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
     ? `/jobs/${listing.id}`
     : `/${listing.type}s/${listing.id}`;
 
+  const isGitHub = !!(listing as any).github_url;
+  const stars = (listing as any).stars;
+
   return (
-    <Link to={detailPath} className="block">
-      <div className={`card-hover rounded-xl border border-border bg-card p-5 relative ${
-        listing.is_sponsored ? "border-primary/30 bg-primary/[0.03]" : ""
+    <Link to={detailPath} className="block group" data-testid={`card-listing-${listing.id}`}>
+      <div className={`card-hover relative h-full rounded-xl p-5 surface ${
+        listing.is_sponsored ? "border-primary/20" : ""
       }`}>
         {listing.is_sponsored && (
-          <Badge className="absolute top-3 right-3 bg-primary/15 text-primary border-primary/30 text-[10px]">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Sponsored
-          </Badge>
+          <span className="badge-sponsored absolute top-3.5 right-3.5">
+            <Sparkles className="h-2.5 w-2.5" /> Sponsored
+          </span>
         )}
         {listing.is_featured && !listing.is_sponsored && (
-          <Badge className="absolute top-3 right-3 bg-accent/15 text-accent border-accent/30 text-[10px]">
+          <span className="badge-featured absolute top-3.5 right-3.5">
             Featured
-          </Badge>
+          </span>
         )}
 
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-xl shrink-0">
-            {getEmoji(index)}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="shrink-0">
+            {listing.logo_url ? (
+              <img
+                src={listing.logo_url}
+                alt={listing.author}
+                className="h-10 w-10 rounded-lg object-cover bg-white/[0.04]"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.05] text-lg border border-white/[0.06]">
+                {getEmoji(index)}
+              </div>
+            )}
           </div>
+
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-foreground truncate">{listing.name}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{listing.author}</p>
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-semibold text-[14.5px] text-foreground truncate group-hover:text-primary transition-colors">
+                {listing.name}
+              </h3>
+              {isGitHub && (
+                <Github className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+              )}
+            </div>
+            <p className="text-[12px] text-muted-foreground mt-0.5 truncate">{listing.author}</p>
           </div>
+
+          <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/50 transition-all shrink-0 -translate-y-0.5 translate-x-0.5 group-hover:translate-x-0 group-hover:translate-y-0" />
         </div>
 
-        <p className="text-sm text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
+        <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed mb-4">
           {listing.description}
         </p>
 
-        <div className="flex items-center justify-between mt-4">
-          <Badge variant="secondary" className="text-[11px]">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-muted-foreground bg-white/[0.04] border border-white/[0.06]">
             {listing.category}
-          </Badge>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          </span>
+          <div className="flex items-center gap-3 text-[11.5px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <Eye className="h-3 w-3" />
               {formatNumber(listing.views)}
             </span>
             {listing.type !== "job" && (
               <span className="flex items-center gap-1">
-                <ArrowUp className="h-3 w-3" />
+                {isGitHub
+                  ? <Star className="h-3 w-3 text-amber-400/70" />
+                  : <Star className="h-3 w-3" />
+                }
                 {formatNumber(listing.upvotes)}
               </span>
             )}
@@ -63,20 +87,18 @@ export function ListingCard({ listing, index = 0 }: ListingCardProps) {
         </div>
 
         {listing.type === "job" && (
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            {listing.company && (
-              <span className="text-xs text-muted-foreground">{listing.company}</span>
-            )}
+          <div className="flex items-center gap-2 mt-3 flex-wrap text-[11.5px] text-muted-foreground">
+            {listing.company && <span className="text-foreground/70 font-medium">{listing.company}</span>}
             {listing.location && (
               <>
-                <span className="text-muted-foreground/40">•</span>
-                <span className="text-xs text-muted-foreground">{listing.location}</span>
+                <span className="text-white/10">·</span>
+                <span>{listing.location}</span>
               </>
             )}
             {listing.salary_range && (
               <>
-                <span className="text-muted-foreground/40">•</span>
-                <span className="text-xs text-primary font-medium">{listing.salary_range}</span>
+                <span className="text-white/10">·</span>
+                <span className="text-primary/80 font-medium">{listing.salary_range}</span>
               </>
             )}
           </div>
