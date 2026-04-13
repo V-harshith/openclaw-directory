@@ -1,11 +1,10 @@
 import { db } from "./db";
 import { listings, submissions, ads, Listing, InsertListing, Submission, InsertSubmission, Ad, InsertAd } from "../shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, or, ilike } from "drizzle-orm";
 
 export const storage = {
   // Listings
   async getListings(filters?: { type?: string; status?: string; category?: string }) {
-    let query = db.select().from(listings);
     const conditions = [];
     if (filters?.type) conditions.push(eq(listings.type, filters.type as any));
     if (filters?.status) conditions.push(eq(listings.status, filters.status as any));
@@ -14,6 +13,24 @@ export const storage = {
       return db.select().from(listings).where(and(...conditions)).orderBy(sql`${listings.upvotes} DESC`);
     }
     return db.select().from(listings).orderBy(sql`${listings.upvotes} DESC`);
+  },
+
+  async searchListings(q: string, type?: string) {
+    const term = `%${q}%`;
+    const conditions: any[] = [
+      or(
+        ilike(listings.name, term),
+        ilike(listings.description, term),
+        ilike(listings.category, term),
+        ilike(listings.author, term),
+      ),
+      eq(listings.status, "approved"),
+    ];
+    if (type) conditions.push(eq(listings.type, type as any));
+    return db.select().from(listings)
+      .where(and(...conditions))
+      .orderBy(sql`${listings.upvotes} DESC`)
+      .limit(50);
   },
 
   async getListingById(id: number) {

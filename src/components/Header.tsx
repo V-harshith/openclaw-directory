@@ -1,12 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Shield, ChevronRight } from "lucide-react";
+import { Menu, X, Shield, ChevronRight, Server, Zap, Puzzle, FileCode, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { isAdminLoggedIn } from "@/lib/adminStore";
 
 const navLinks = [
-  { label: "Skills", to: "/skills" },
-  { label: "Plugins", to: "/plugins" },
-  { label: "Jobs", to: "/jobs" },
+  { label: "MCP Servers", to: "/mcp-servers", icon: Server },
+  { label: "Skills", to: "/skills", icon: Zap },
+  { label: "Plugins", to: "/plugins", icon: Puzzle },
+  { label: "Templates", to: "/templates", icon: FileCode },
+  { label: "Jobs", to: "/jobs", icon: Briefcase },
 ];
 
 export function Header() {
@@ -20,10 +22,10 @@ export function Header() {
 
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground tracking-tight">
-            AI
+            OC
           </div>
           <span className="text-[15px] font-semibold tracking-tight text-foreground">
-            AIDir
+            OpenClaw
           </span>
         </Link>
 
@@ -32,7 +34,7 @@ export function Header() {
             <Link
               key={link.to}
               to={link.to}
-              className={`px-3.5 py-1.5 rounded-md text-[13.5px] font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${
                 location.pathname.startsWith(link.to)
                   ? "text-foreground bg-white/[0.06]"
                   : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
@@ -79,12 +81,13 @@ export function Header() {
               key={link.to}
               to={link.to}
               onClick={() => setMobileOpen(false)}
-              className={`block px-3 py-2 rounded-md text-sm ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
                 location.pathname.startsWith(link.to)
                   ? "bg-white/[0.06] text-foreground"
                   : "text-muted-foreground"
               }`}
             >
+              <link.icon className="h-4 w-4" />
               {link.label}
             </Link>
           ))}

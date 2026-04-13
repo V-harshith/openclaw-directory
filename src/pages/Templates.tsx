@@ -1,36 +1,34 @@
 import { useState, useMemo } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, FileCode, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Layout } from "@/components/Layout";
 import { AdBanner, SidebarAd } from "@/components/AdBanner";
 import { ListingCard } from "@/components/ListingCard";
-import { SKILL_CATEGORIES } from "@/data/mockData";
-import { useSearchParams } from "react-router-dom";
-import { useSkills, useAds } from "@/hooks/useListings";
+import { useAds, useTemplates } from "@/hooks/useListings";
 import { useSEO } from "@/hooks/useSEO";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TEMPLATE_CATEGORIES } from "@/data/mockData";
 
 const SORT_OPTIONS = ["Popular", "Newest", "Most Viewed"];
 
-export default function SkillsPage() {
-  const [searchParams] = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get("q") || "");
+export default function TemplatesPage() {
+  const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("Popular");
 
-  const { data: skills, isLoading, error } = useSkills();
+  const { data: templates, isLoading, error } = useTemplates();
   const { data: ads } = useAds();
 
   useSEO({
-    title: "AI Agent Skills Directory — OpenClaw",
-    description: "Browse the best AI agent skills and capabilities. Code execution, memory, web search, research and more skills for Claude and AI agents.",
+    title: "AI Agent Templates — OpenClaw Directory",
+    description: "Browse ready-to-use AI agent templates. Research agents, code review bots, customer support agents and more. Built for Claude and compatible LLMs.",
   });
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");
   const headerAd = ads?.find((a) => a.placement === "header");
 
   const filtered = useMemo(() => {
-    let items = [...(skills || [])];
+    let items = [...(templates || [])];
     if (search) items = items.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.description.toLowerCase().includes(search.toLowerCase()));
     if (category !== "All") items = items.filter((s) => s.category === category);
 
@@ -42,7 +40,7 @@ export default function SkillsPage() {
     else rest.sort((a, b) => b.views - a.views);
 
     return [...sponsored, ...rest];
-  }, [search, category, sort, skills]);
+  }, [search, category, sort, templates]);
 
   return (
     <Layout>
@@ -51,20 +49,32 @@ export default function SkillsPage() {
           <AdBanner ad={headerAd} />
         </div>
       )}
+
       <div className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold">AI Skills</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <FileCode className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Agent Templates</h1>
+              <p className="text-muted-foreground text-sm">Ready-to-deploy AI agent blueprints</p>
+            </div>
+          </div>
           {isLoading && (
             <span className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Fetching live data from GitHub…
+              <Loader2 className="h-3 w-3 animate-spin" /> Loading…
             </span>
           )}
         </div>
-        <p className="text-muted-foreground mb-6">Browse and discover AI assistant capabilities</p>
+
+        <p className="text-muted-foreground mb-6 mt-4 max-w-2xl text-sm leading-relaxed">
+          Skip the boilerplate. These agent templates are battle-tested blueprints for common AI use cases. Fork them, adapt them, and ship faster.
+        </p>
 
         {error && (
           <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-xs text-yellow-400">
-            GitHub API rate limit reached — showing cached data. Try again in a few minutes.
+            Failed to load templates. Please try refreshing.
           </div>
         )}
 
@@ -74,9 +84,8 @@ export default function SkillsPage() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search skills..."
+              placeholder="Search templates…"
               className="pl-10 bg-card border-border"
-              data-testid="input-search-skills"
             />
           </div>
           <div className="flex gap-2">
@@ -84,7 +93,6 @@ export default function SkillsPage() {
               <button
                 key={s}
                 onClick={() => setSort(s)}
-                data-testid={`button-sort-${s.toLowerCase().replace(" ", "-")}`}
                 className={`px-3 py-2 text-sm rounded-lg transition-colors ${sort === s ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"}`}
               >
                 {s}
@@ -94,11 +102,10 @@ export default function SkillsPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8">
-          {SKILL_CATEGORIES.map((cat) => (
+          {TEMPLATE_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              data-testid={`filter-category-${cat.toLowerCase()}`}
               className={`px-3 py-1.5 text-xs rounded-full transition-colors ${category === cat ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:text-foreground border border-border"}`}
             >
               {cat}
@@ -109,18 +116,17 @@ export default function SkillsPage() {
         <div className="flex gap-6">
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading
-              ? Array.from({ length: 9 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)
-              : filtered.map((skill, i) => <ListingCard key={skill.id} listing={skill} index={i} />)}
+              ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)
+              : filtered.map((template, i) => <ListingCard key={template.id} listing={template} index={i} />)}
             {!isLoading && filtered.length === 0 && (
               <div className="col-span-full text-center py-20 text-muted-foreground">
-                No skills found matching your criteria.
+                No templates found. <a href="/submit" className="text-primary hover:underline">Submit one!</a>
               </div>
             )}
           </div>
           {sidebarAd && (
             <div className="hidden lg:block w-[200px] shrink-0 space-y-4">
               <SidebarAd ad={sidebarAd} />
-              <SidebarAd ad={{ ...sidebarAd, id: "ad-extra", label: "🔥 Promote Your AI Tool — Get Featured" }} />
             </div>
           )}
         </div>
