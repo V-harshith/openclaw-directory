@@ -78,8 +78,8 @@ export function useListing(id: number | string) {
 
 export function useAds() {
   return useQuery<Ad[]>({
-    queryKey: ["/api/highlights"],
-    queryFn: () => api.getHighlights(),
+    queryKey: ["/api/ads"],
+    queryFn: () => api.getAds(),
     staleTime: 5 * 60 * 1000,
   });
 }

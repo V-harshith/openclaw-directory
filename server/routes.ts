@@ -48,17 +48,8 @@ function sanitizeString(str: string): string {
   return str.trim().slice(0, 2000);
 }
 
-function noCache(res: Response) {
-  res.set("Cache-Control", "no-store");
-}
-
-function shortCache(res: Response) {
-  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
-}
-
 // Auth
 router.post("/admin/login", authLimiter, (req: Request, res: Response) => {
-  noCache(res);
   const { password } = req.body;
   if (!password || typeof password !== "string") {
     return res.status(400).json({ error: "Password required" });
@@ -71,7 +62,6 @@ router.post("/admin/login", authLimiter, (req: Request, res: Response) => {
 });
 
 router.get("/admin/me", adminAuth, (req: Request, res: Response) => {
-  noCache(res);
   res.json({ role: "admin", ok: true });
 });
 
@@ -86,7 +76,6 @@ router.get("/listings", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid listing type" });
     }
 
-    shortCache(res);
     const items = await storage.getListings({
       type: type || undefined,
       status: "approved",
@@ -104,7 +93,6 @@ router.get("/listings/search", async (req: Request, res: Response) => {
     const type = req.query.type as string;
     if (!q) return res.json([]);
 
-    shortCache(res);
     const items = await storage.searchListings(q, type);
     res.json(items);
   } catch (e: any) {
@@ -114,7 +102,6 @@ router.get("/listings/search", async (req: Request, res: Response) => {
 
 router.get("/listings/all", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const type = req.query.type as string;
     const items = await storage.getListings({ type: type || undefined });
     res.json(items);
@@ -130,7 +117,6 @@ router.get("/listings/:id", async (req: Request, res: Response) => {
     const listing = await storage.getListingById(id);
     if (!listing) return res.status(404).json({ error: "Listing not found" });
     if (listing.status !== "approved") return res.status(404).json({ error: "Listing not found" });
-    shortCache(res);
     await storage.incrementViews(id);
     res.json(listing);
   } catch (e: any) {
@@ -140,7 +126,6 @@ router.get("/listings/:id", async (req: Request, res: Response) => {
 
 router.post("/listings", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const data = insertListingSchema.parse(req.body);
     const listing = await storage.createListing(data);
     res.json(listing);
@@ -154,7 +139,6 @@ router.post("/listings", adminAuth, async (req: Request, res: Response) => {
 
 router.patch("/listings/:id", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     const listing = await storage.updateListing(id, req.body);
@@ -167,7 +151,6 @@ router.patch("/listings/:id", adminAuth, async (req: Request, res: Response) => 
 
 router.delete("/listings/:id", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     await storage.deleteListing(id);
@@ -179,7 +162,6 @@ router.delete("/listings/:id", adminAuth, async (req: Request, res: Response) =>
 
 router.post("/listings/:id/upvote", upvoteLimiter, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     const listing = await storage.upvoteListing(id);
@@ -193,7 +175,6 @@ router.post("/listings/:id/upvote", upvoteLimiter, async (req: Request, res: Res
 // Submissions
 router.get("/submissions", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const { status } = req.query;
     const allowed = ["approved", "pending", "rejected"];
     if (status && !allowed.includes(status as string)) {
@@ -208,7 +189,6 @@ router.get("/submissions", adminAuth, async (req: Request, res: Response) => {
 
 router.post("/submissions", submitLimiter, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const body = {
       ...req.body,
       status: "pending",
@@ -229,7 +209,6 @@ router.post("/submissions", submitLimiter, async (req: Request, res: Response) =
 
 router.patch("/submissions/:id/status", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     const { status } = z.object({ status: z.enum(["approved", "pending", "rejected"]) }).parse(req.body);
@@ -245,7 +224,6 @@ router.patch("/submissions/:id/status", adminAuth, async (req: Request, res: Res
 
 router.delete("/submissions/:id", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     await storage.deleteSubmission(id);
@@ -255,29 +233,26 @@ router.delete("/submissions/:id", adminAuth, async (req: Request, res: Response)
   }
 });
 
-// Highlights (ad-blocker resistant promotion system — served from first-party API)
-router.get("/highlights", async (req: Request, res: Response) => {
+// Ads
+router.get("/ads", async (req: Request, res: Response) => {
   try {
-    shortCache(res);
     const items = await storage.getAds(true);
     res.json(items);
   } catch (e: any) {
-    res.status(500).json({ error: "Failed to fetch highlights" });
+    res.status(500).json({ error: "Failed to fetch ads" });
   }
 });
 
-router.get("/highlights/all", adminAuth, async (req: Request, res: Response) => {
+router.get("/ads/all", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     res.json(await storage.getAds(false));
   } catch (e: any) {
-    res.status(500).json({ error: "Failed to fetch highlights" });
+    res.status(500).json({ error: "Failed to fetch ads" });
   }
 });
 
-router.post("/highlights", adminAuth, async (req: Request, res: Response) => {
+router.post("/ads", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const data = insertAdSchema.parse(req.body);
     res.json(await storage.createAd(data));
   } catch (e: any) {
@@ -288,9 +263,8 @@ router.post("/highlights", adminAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.patch("/highlights/:id", adminAuth, async (req: Request, res: Response) => {
+router.patch("/ads/:id", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     res.json(await storage.updateAd(id, req.body));
@@ -299,15 +273,14 @@ router.patch("/highlights/:id", adminAuth, async (req: Request, res: Response) =
   }
 });
 
-router.delete("/highlights/:id", adminAuth, async (req: Request, res: Response) => {
+router.delete("/ads/:id", adminAuth, async (req: Request, res: Response) => {
   try {
-    noCache(res);
     const id = parseInt(req.params.id);
     if (isNaN(id) || id < 1) return res.status(400).json({ error: "Invalid id" });
     await storage.deleteAd(id);
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ error: "Failed to delete highlight" });
+    res.status(500).json({ error: "Failed to delete ad" });
   }
 });
 
