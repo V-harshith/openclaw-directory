@@ -91,25 +91,25 @@ export const api = {
     return request(`/submissions/${id}`, { method: "DELETE" });
   },
 
-  // Ads
-  async getAds(): Promise<any[]> {
-    return request("/ads");
+  // Highlights (promotion system — neutral naming for ad-blocker resistance)
+  async getHighlights(): Promise<any[]> {
+    return request("/highlights");
   },
 
-  async getAllAds(): Promise<any[]> {
-    return request("/ads/all");
+  async getAllHighlights(): Promise<any[]> {
+    return request("/highlights/all");
   },
 
-  async createAd(data: any): Promise<any> {
-    return request("/ads", { method: "POST", body: JSON.stringify(data) });
+  async createHighlight(data: any): Promise<any> {
+    return request("/highlights", { method: "POST", body: JSON.stringify(data) });
   },
 
-  async updateAd(id: number, data: any): Promise<any> {
-    return request(`/ads/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  async updateHighlight(id: number, data: any): Promise<any> {
+    return request(`/highlights/${id}`, { method: "PATCH", body: JSON.stringify(data) });
   },
 
-  async deleteAd(id: number): Promise<void> {
-    return request(`/ads/${id}`, { method: "DELETE" });
+  async deleteHighlight(id: number): Promise<void> {
+    return request(`/highlights/${id}`, { method: "DELETE" });
   },
 
   // Token management
