@@ -127,7 +127,15 @@ export default function MCPServersPage() {
               : filtered.map((server, i) => <ListingCard key={server.id} listing={server} index={i} />)}
             {!isLoading && filtered.length === 0 && (
               <div className="col-span-full text-center py-20 text-muted-foreground">
-                No MCP servers found matching your criteria.
+                <p className="mb-4">No MCP servers found matching your criteria.</p>
+                {(search || category !== "All") && (
+                  <button
+                    onClick={() => { setSearch(""); setCategory("All"); }}
+                    className="text-[13px] text-primary hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             )}
           </div>

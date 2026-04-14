@@ -35,6 +35,12 @@ export const api = {
   },
 
   // Listings
+  async searchListings(q: string, type?: string): Promise<any[]> {
+    const qs = new URLSearchParams({ q });
+    if (type) qs.set("type", type);
+    return request(`/listings/search?${qs}`);
+  },
+
   async getListings(params?: { type?: string; category?: string }): Promise<any[]> {
     const qs = new URLSearchParams();
     if (params?.type) qs.set("type", params.type);

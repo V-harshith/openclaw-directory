@@ -15,9 +15,9 @@ An AI tools marketplace and directory for discovering MCP servers, Skills, Plugi
 ```
 /src          - React frontend application
   /components - Reusable UI components (Header, Footer, ListingCard, AdBanner, ScrollToTop)
-  /pages      - Top-level views (Index, MCPServers, Skills, Plugins, Templates, Jobs, Detail, About, Submit, Admin, Login)
+  /pages      - Top-level views (Index, MCPServers, Skills, Plugins, Templates, Jobs, Detail, About, Submit, Admin, Login, Search)
   /lib        - API client (api.ts) and utilities
-  /hooks      - Custom React hooks (useListings, useSEO)
+  /hooks      - Custom React hooks (useListings with useSearch, useSEO)
   /data       - Mock data and type definitions
 /server       - Express backend API
   index.ts    - Entry point, DB migration and seeding, helmet, rate limiting

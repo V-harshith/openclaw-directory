@@ -14,6 +14,7 @@ import Submit from "./pages/Submit.tsx";
 import Login from "./pages/Login.tsx";
 import Admin from "./pages/Admin.tsx";
 import About from "./pages/About.tsx";
+import Search from "./pages/Search.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTop } from "./components/ScrollToTop.tsx";
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/jobs/:id" element={<Detail />} />
             <Route path="/about" element={<About />} />
+            <Route path="/search" element={<Search />} />
             <Route path="/submit" element={<Submit />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />

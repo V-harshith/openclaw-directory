@@ -31,10 +31,28 @@ export default function SubmitPage() {
     : type === "template" ? TEMPLATE_CATEGORIES.filter((c) => c !== "All")
     : ["Engineering", "Product", "Design", "Research", "Marketing"];
 
+  const isValidUrl = (url: string) => {
+    if (!url) return true;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" || parsed.protocol === "http:";
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !description || !category) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (website && !isValidUrl(website)) {
+      toast.error("Invalid website URL. Must start with http:// or https://");
+      return;
+    }
+    if (github && !isValidUrl(github)) {
+      toast.error("Invalid GitHub URL. Must start with https://github.com/...");
       return;
     }
     setLoading(true);

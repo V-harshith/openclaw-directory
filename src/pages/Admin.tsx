@@ -60,6 +60,13 @@ export default function AdminPage() {
     enabled: authed && tab === "listings",
   });
 
+  const { data: allListingsForStats = [] } = useQuery({
+    queryKey: ["/api/listings/all/stats"],
+    queryFn: () => api.getAllListings(),
+    enabled: authed,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: submissions = [], isLoading: subsLoading, refetch: refetchSubs } = useQuery({
     queryKey: ["/api/submissions"],
     queryFn: () => api.getSubmissions(),
@@ -208,10 +215,10 @@ export default function AdminPage() {
           <div className="space-y-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Total Listings", value: submissions.length + allListings.length, icon: Database, sub: "in database" },
+                { label: "Total Submissions", value: submissions.length, icon: Database, sub: "all time" },
                 { label: "Pending Review", value: pendingCount, icon: Clock, sub: "need action" },
-                { label: "MCP Servers", value: "–", icon: Zap, sub: "approved" },
-                { label: "Jobs Posted", value: "–", icon: Briefcase, sub: "active" },
+                { label: "MCP Servers", value: allListingsForStats.filter((l: any) => l.type === "mcp_server" && l.status === "approved").length, icon: Zap, sub: "approved" },
+                { label: "Jobs Posted", value: allListingsForStats.filter((l: any) => l.type === "job" && l.status === "approved").length, icon: Briefcase, sub: "active" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl p-5 surface">
                   <div className="flex items-center justify-between mb-3">
@@ -256,7 +263,7 @@ export default function AdminPage() {
                     { label: "Listings table", status: "Active" },
                     { label: "Submissions table", status: "Active" },
                     { label: "Ads table", status: "Active" },
-                    { label: "GitHub supplemental data", status: "Enabled" },
+                    { label: "Rate limiting", status: "Active" },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between text-[12px] px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
                       <span className="text-muted-foreground">{item.label}</span>

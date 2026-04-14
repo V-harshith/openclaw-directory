@@ -27,7 +27,7 @@ const Index = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (search.trim()) navigate(`/mcp-servers?q=${encodeURIComponent(search)}`);
+    if (search.trim()) navigate(`/search?q=${encodeURIComponent(search)}`);
   };
 
   const headerAd = ads?.find((a) => a.placement === "header");
