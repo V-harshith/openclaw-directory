@@ -7,7 +7,7 @@ An AI tools marketplace and directory for discovering MCP servers, Skills, Plugi
 - **Frontend**: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, React Router v6
 - **Backend**: Node.js + Express.js, running on port 3001
 - **Database**: Neon PostgreSQL (serverless) via Drizzle ORM — connection via `NEON_DATABASE_URL`
-- **Security**: Helmet, express-rate-limit, JWT authentication
+- **Security**: express-rate-limit (auth/upvote/submit), JWT authentication
 - **Shared**: Zod schemas via drizzle-zod
 
 ## Project Structure
@@ -54,7 +54,7 @@ Auto-migrates and seeds on startup (`server/index.ts`). Three main tables:
 - `submissions` — User-submitted listings awaiting admin review
 - `ads` — Sponsored ad placements (header, sidebar, footer, in-content)
 
-Seed data: 8 MCP servers, 3 skills, 3 templates, 1 plugin, 4 jobs + 3 default ads.
+Seed data: 10 MCP servers, 4 skills, 3 plugins, 4 templates, 4 jobs + 4 default ads (25 total listings). Frontend also seeds localStorage via mockData.ts with 15 MCP servers, 10 skills, 9 plugins, 7 templates, 7 jobs.
 
 ## Key Architecture Decisions
 

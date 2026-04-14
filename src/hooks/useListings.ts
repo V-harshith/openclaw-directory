@@ -86,8 +86,8 @@ export function useAds() {
 
 export function useSearch(q: string, type?: string) {
   return useQuery<Listing[]>({
-    queryKey: ["/api/listings/search", q, type],
-    queryFn: () => api.searchListings(q, type),
+    queryKey: ["/api/search", q, type],
+    queryFn: () => api.search(q, type),
     enabled: q.trim().length > 0,
     staleTime: 60 * 1000,
   });

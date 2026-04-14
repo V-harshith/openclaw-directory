@@ -1,16 +1,17 @@
-// Local-first API layer — all data lives in localStorage.
-// When you connect a real database later, swap these implementations.
+// OpenClaw API layer — localStorage-based with full seed data.
+// Backend (Express + PostgreSQL) runs in parallel on port 3001.
+// When backend is confirmed stable, swap queryFns to call /api/* endpoints.
 
 import { Listing, Ad, seedMcpServers, seedSkills, seedPlugins, seedTemplates, seedJobs, seedAds } from "@/data/mockData";
+
+export const ADMIN_PASSWORD = "openclaw2026";
 
 const KEYS = {
   listings: "oc_listings",
   ads: "oc_ads",
   submissions: "oc_submissions",
-  admin: "oc_admin_auth",
+  admin: "oc_admin_token",
 };
-
-// ── Seed on first load ──────────────────────────────────────
 
 function getStoredListings(): Listing[] {
   try {
@@ -49,16 +50,14 @@ function saveSubmissions(subs: any[]) {
   localStorage.setItem(KEYS.submissions, JSON.stringify(subs));
 }
 
-// ── Simulated async (all resolve instantly) ─────────────────
-
-const delay = () => new Promise<void>((r) => setTimeout(r, 50));
+const delay = () => new Promise<void>((r) => setTimeout(r, 40));
 
 export const api = {
-  // Auth — simple password check
+  // Auth
   async adminLogin(password: string): Promise<{ token: string }> {
     await delay();
-    if (password === "admin123") {
-      return { token: "local-admin-token" };
+    if (password === ADMIN_PASSWORD) {
+      return { token: "oc-admin-token-local" };
     }
     throw new Error("Incorrect password");
   },
@@ -87,10 +86,14 @@ export const api = {
     await delay();
     const item = getStoredListings().find((l) => Number(l.id) === id);
     if (!item) throw new Error("Not found");
+    // Increment views locally
+    const all = getStoredListings();
+    const idx = all.findIndex((l) => Number(l.id) === id);
+    if (idx !== -1) { all[idx] = { ...all[idx], views: (all[idx].views || 0) + 1 }; saveListings(all); }
     return item;
   },
 
-  async searchListings(q: string, type?: string): Promise<Listing[]> {
+  async search(q: string, type?: string): Promise<Listing[]> {
     await delay();
     const lower = q.toLowerCase();
     let items = getStoredListings().filter((l) => l.status === "approved");
@@ -99,7 +102,8 @@ export const api = {
       l.name.toLowerCase().includes(lower) ||
       l.description.toLowerCase().includes(lower) ||
       l.tags.some((t) => t.toLowerCase().includes(lower)) ||
-      l.author.toLowerCase().includes(lower)
+      l.author.toLowerCase().includes(lower) ||
+      l.category.toLowerCase().includes(lower)
     );
   },
 
@@ -135,8 +139,7 @@ export const api = {
 
   async deleteListing(id: number): Promise<void> {
     await delay();
-    const all = getStoredListings().filter((l) => Number(l.id) !== id);
-    saveListings(all);
+    saveListings(getStoredListings().filter((l) => Number(l.id) !== id));
   },
 
   async upvoteListing(id: number): Promise<Listing> {
@@ -178,16 +181,13 @@ export const api = {
   async updateSubmissionStatus(id: number, status: string): Promise<any> {
     await delay();
     const subs = getStoredSubmissions();
-    const idx = subs.findIndex((s: any) => s.id === id);
+    const idx = subs.findIndex((s: any) => Number(s.id) === id);
     if (idx === -1) throw new Error("Not found");
     subs[idx].status = status;
     saveSubmissions(subs);
-
-    // If approved, also add to listings
     if (status === "approved") {
       const all = getStoredListings();
-      const exists = all.find((l) => Number(l.id) === id);
-      if (!exists) {
+      if (!all.find((l) => Number(l.id) === id)) {
         all.unshift({ ...subs[idx], status: "approved" });
         saveListings(all);
       }
@@ -197,8 +197,7 @@ export const api = {
 
   async deleteSubmission(id: number): Promise<void> {
     await delay();
-    const subs = getStoredSubmissions().filter((s: any) => s.id !== id);
-    saveSubmissions(subs);
+    saveSubmissions(getStoredSubmissions().filter((s: any) => Number(s.id) !== id));
   },
 
   // Ads
@@ -233,8 +232,7 @@ export const api = {
 
   async deleteAd(id: number): Promise<void> {
     await delay();
-    const ads = getStoredAds().filter((a) => Number(a.id) !== Number(id));
-    saveAds(ads);
+    saveAds(getStoredAds().filter((a) => Number(a.id) !== Number(id)));
   },
 
   // Token management
