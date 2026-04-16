@@ -1,238 +1,146 @@
-// OpenClaw API layer — localStorage-based with full seed data.
-// Backend (Express + PostgreSQL) runs in parallel on port 3001.
-// When backend is confirmed stable, swap queryFns to call /api/* endpoints.
+// OpenClaw API layer — calls Express backend connected to Neon PostgreSQL.
 
-import { Listing, Ad, seedMcpServers, seedSkills, seedPlugins, seedTemplates, seedJobs, seedAds } from "@/data/mockData";
+import { Listing, Ad } from "@/data/mockData";
 
-export const ADMIN_PASSWORD = "openclaw2026";
+const BASE = import.meta.env.VITE_API_URL || "/api";
 
 const KEYS = {
-  listings: "oc_listings",
-  ads: "oc_ads",
-  submissions: "oc_submissions",
   admin: "oc_admin_token",
 };
 
-function getStoredListings(): Listing[] {
-  try {
-    const raw = localStorage.getItem(KEYS.listings);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  const seed = [...seedMcpServers, ...seedSkills, ...seedPlugins, ...seedTemplates, ...seedJobs];
-  localStorage.setItem(KEYS.listings, JSON.stringify(seed));
-  return seed;
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem(KEYS.admin);
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function saveListings(listings: Listing[]) {
-  localStorage.setItem(KEYS.listings, JSON.stringify(listings));
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+      ...options?.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed: ${res.status}`);
+  }
+  return res.json();
 }
-
-function getStoredAds(): Ad[] {
-  try {
-    const raw = localStorage.getItem(KEYS.ads);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  localStorage.setItem(KEYS.ads, JSON.stringify(seedAds));
-  return [...seedAds];
-}
-
-function saveAds(ads: Ad[]) {
-  localStorage.setItem(KEYS.ads, JSON.stringify(ads));
-}
-
-function getStoredSubmissions(): any[] {
-  try {
-    return JSON.parse(localStorage.getItem(KEYS.submissions) || "[]");
-  } catch { return []; }
-}
-
-function saveSubmissions(subs: any[]) {
-  localStorage.setItem(KEYS.submissions, JSON.stringify(subs));
-}
-
-const delay = () => new Promise<void>((r) => setTimeout(r, 40));
 
 export const api = {
   // Auth
   async adminLogin(password: string): Promise<{ token: string }> {
-    await delay();
-    if (password === ADMIN_PASSWORD) {
-      return { token: "oc-admin-token-local" };
-    }
-    throw new Error("Incorrect password");
+    return request("/admin/login", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
   },
 
   async adminMe(): Promise<{ role: string; ok: boolean }> {
-    return { role: "admin", ok: true };
+    return request("/admin/me");
   },
 
   // Listings
   async getListings(params?: { type?: string; category?: string }): Promise<Listing[]> {
-    await delay();
-    let items = getStoredListings().filter((l) => l.status === "approved");
-    if (params?.type) items = items.filter((l) => l.type === params.type);
-    if (params?.category && params.category !== "All") items = items.filter((l) => l.category === params.category);
-    return items;
+    const sp = new URLSearchParams();
+    if (params?.type) sp.set("type", params.type);
+    if (params?.category && params.category !== "All") sp.set("category", params.category);
+    const qs = sp.toString();
+    return request(`/listings${qs ? `?${qs}` : ""}`);
   },
 
   async getAllListings(type?: string): Promise<Listing[]> {
-    await delay();
-    let items = getStoredListings();
-    if (type) items = items.filter((l) => l.type === type);
-    return items;
+    const sp = new URLSearchParams();
+    if (type) sp.set("type", type);
+    const qs = sp.toString();
+    return request(`/listings/all${qs ? `?${qs}` : ""}`);
   },
 
   async getListing(id: number): Promise<Listing> {
-    await delay();
-    const item = getStoredListings().find((l) => Number(l.id) === id);
-    if (!item) throw new Error("Not found");
-    // Increment views locally
-    const all = getStoredListings();
-    const idx = all.findIndex((l) => Number(l.id) === id);
-    if (idx !== -1) { all[idx] = { ...all[idx], views: (all[idx].views || 0) + 1 }; saveListings(all); }
-    return item;
+    return request(`/listings/${id}`);
   },
 
   async search(q: string, type?: string): Promise<Listing[]> {
-    await delay();
-    const lower = q.toLowerCase();
-    let items = getStoredListings().filter((l) => l.status === "approved");
-    if (type) items = items.filter((l) => l.type === type);
-    return items.filter((l) =>
-      l.name.toLowerCase().includes(lower) ||
-      l.description.toLowerCase().includes(lower) ||
-      l.tags.some((t) => t.toLowerCase().includes(lower)) ||
-      l.author.toLowerCase().includes(lower) ||
-      l.category.toLowerCase().includes(lower)
-    );
+    const sp = new URLSearchParams({ q });
+    if (type) sp.set("type", type);
+    return request(`/listings/search?${sp.toString()}`);
   },
 
   async createListing(data: any): Promise<Listing> {
-    await delay();
-    const all = getStoredListings();
-    const newItem: Listing = {
-      id: Date.now(),
-      views: 0,
-      upvotes: 0,
-      status: "approved",
-      is_sponsored: false,
-      is_featured: false,
-      logo_url: "",
-      tags: data.tags || [],
-      created_at: new Date().toISOString(),
-      ...data,
-    };
-    all.unshift(newItem);
-    saveListings(all);
-    return newItem;
+    return request("/listings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 
   async updateListing(id: number, data: any): Promise<Listing> {
-    await delay();
-    const all = getStoredListings();
-    const idx = all.findIndex((l) => Number(l.id) === id);
-    if (idx === -1) throw new Error("Not found");
-    all[idx] = { ...all[idx], ...data };
-    saveListings(all);
-    return all[idx];
+    return request(`/listings/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
   },
 
   async deleteListing(id: number): Promise<void> {
-    await delay();
-    saveListings(getStoredListings().filter((l) => Number(l.id) !== id));
+    await request(`/listings/${id}`, { method: "DELETE" });
   },
 
   async upvoteListing(id: number): Promise<Listing> {
-    await delay();
-    const all = getStoredListings();
-    const idx = all.findIndex((l) => Number(l.id) === id);
-    if (idx === -1) throw new Error("Not found");
-    all[idx] = { ...all[idx], upvotes: (all[idx].upvotes || 0) + 1 };
-    saveListings(all);
-    return all[idx];
+    return request(`/listings/${id}/upvote`, { method: "POST" });
   },
 
   // Submissions
-  async getSubmissions(_status?: string): Promise<any[]> {
-    await delay();
-    const subs = getStoredSubmissions();
-    if (_status) return subs.filter((s: any) => s.status === _status);
-    return subs;
+  async getSubmissions(status?: string): Promise<any[]> {
+    const sp = new URLSearchParams();
+    if (status) sp.set("status", status);
+    const qs = sp.toString();
+    return request(`/submissions${qs ? `?${qs}` : ""}`);
   },
 
   async createSubmission(data: any): Promise<any> {
-    await delay();
-    const subs = getStoredSubmissions();
-    const newSub = {
-      id: Date.now(),
-      submitted_at: new Date().toISOString(),
-      views: 0,
-      upvotes: 0,
-      is_sponsored: false,
-      is_featured: false,
-      logo_url: "",
-      ...data,
-    };
-    subs.unshift(newSub);
-    saveSubmissions(subs);
-    return newSub;
+    return request("/submissions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 
   async updateSubmissionStatus(id: number, status: string): Promise<any> {
-    await delay();
-    const subs = getStoredSubmissions();
-    const idx = subs.findIndex((s: any) => Number(s.id) === id);
-    if (idx === -1) throw new Error("Not found");
-    subs[idx].status = status;
-    saveSubmissions(subs);
-    if (status === "approved") {
-      const all = getStoredListings();
-      if (!all.find((l) => Number(l.id) === id)) {
-        all.unshift({ ...subs[idx], status: "approved" });
-        saveListings(all);
-      }
-    }
-    return subs[idx];
+    return request(`/submissions/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
   },
 
   async deleteSubmission(id: number): Promise<void> {
-    await delay();
-    saveSubmissions(getStoredSubmissions().filter((s: any) => Number(s.id) !== id));
+    await request(`/submissions/${id}`, { method: "DELETE" });
   },
 
   // Ads
   async getAds(): Promise<Ad[]> {
-    await delay();
-    return getStoredAds().filter((a) => a.active);
+    return request("/ads");
   },
 
   async getAllAds(): Promise<Ad[]> {
-    await delay();
-    return getStoredAds();
+    return request("/ads/all");
   },
 
   async createAd(data: any): Promise<Ad> {
-    await delay();
-    const ads = getStoredAds();
-    const newAd: Ad = { id: Date.now(), image_url: "", active: true, ...data };
-    ads.push(newAd);
-    saveAds(ads);
-    return newAd;
+    return request("/ads", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 
   async updateAd(id: number, data: any): Promise<Ad> {
-    await delay();
-    const ads = getStoredAds();
-    const idx = ads.findIndex((a) => Number(a.id) === Number(id));
-    if (idx === -1) throw new Error("Not found");
-    ads[idx] = { ...ads[idx], ...data };
-    saveAds(ads);
-    return ads[idx];
+    return request(`/ads/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
   },
 
   async deleteAd(id: number): Promise<void> {
-    await delay();
-    saveAds(getStoredAds().filter((a) => Number(a.id) !== Number(id)));
+    await request(`/ads/${id}`, { method: "DELETE" });
   },
 
   // Token management

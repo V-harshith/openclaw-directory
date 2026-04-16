@@ -58,11 +58,6 @@ export function Header() {
               Submit
             </button>
           </Link>
-          <Link to="/login">
-            <button className="btn-primary h-8 px-4 text-[13px] flex items-center gap-1.5">
-              Sign in <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </Link>
         </div>
 
         <button
