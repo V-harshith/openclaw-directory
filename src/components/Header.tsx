@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Shield, ChevronRight, Server, Zap, Puzzle, FileCode, Briefcase } from "lucide-react";
+import { Menu, X, Shield, Server, Zap, Puzzle, FileCode, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { isAdminLoggedIn } from "@/lib/adminStore";
 
@@ -89,9 +89,6 @@ export function Header() {
           <div className="flex gap-2 pt-3">
             <Link to="/submit" className="flex-1" onClick={() => setMobileOpen(false)}>
               <button className="btn-ghost w-full h-9 text-sm">Submit</button>
-            </Link>
-            <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
-              <button className="btn-primary w-full h-9 text-sm">Sign in</button>
             </Link>
           </div>
         </div>
