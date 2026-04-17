@@ -22,6 +22,7 @@ export default function TemplatesPage() {
   useSEO({
     title: "AI Agent Templates — OpenClaw Directory",
     description: "Browse ready-to-use AI agent templates. Research agents, code review bots, customer support agents and more. Built for Claude and compatible LLMs.",
+    canonical: "https://openclaw.io/templates",
   });
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");

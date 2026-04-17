@@ -22,6 +22,7 @@ export default function PluginsPage() {
   useSEO({
     title: "AI Plugins Directory — OpenClaw",
     description: "Browse the best AI plugins and integrations. Connect your AI assistant to analytics, communication, storage and more tools.",
+    canonical: "https://openclaw.io/plugins",
   });
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");

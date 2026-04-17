@@ -21,6 +21,7 @@ export default function JobsPage() {
   useSEO({
     title: "AI & Agent Engineering Jobs — OpenClaw Job Board",
     description: "Find the best AI jobs, agent engineer roles, prompt engineering and ML positions. Remote and onsite AI jobs from top AI companies.",
+    canonical: "https://openclaw.io/jobs",
   });
 
   const headerAd = ads?.find((a) => a.placement === "header");
