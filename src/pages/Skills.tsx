@@ -24,6 +24,7 @@ export default function SkillsPage() {
   useSEO({
     title: "AI Agent Skills Directory — OpenClaw",
     description: "Browse the best AI agent skills and capabilities. Code execution, memory, web search, research and more skills for Claude and AI agents.",
+    canonical: "https://openclaw.io/skills",
   });
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");

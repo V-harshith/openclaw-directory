@@ -29,6 +29,7 @@ export default function MCPServersPage() {
   useSEO({
     title: "Best MCP Servers for Claude — OpenClaw Directory",
     description: "Browse the best Model Context Protocol (MCP) servers for Claude. Find MCP servers for file systems, databases, GitHub, Slack, browsers and more.",
+    canonical: "https://openclaw.io/mcp-servers",
   });
 
   const sidebarAd = ads?.find((a) => a.placement === "sidebar");

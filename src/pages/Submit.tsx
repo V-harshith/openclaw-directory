@@ -8,9 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { LISTING_TYPES, MCP_CATEGORIES, SKILL_CATEGORIES, PLUGIN_CATEGORIES, TEMPLATE_CATEGORIES } from "@/data/mockData";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function SubmitPage() {
   const navigate = useNavigate();
+  useSEO({
+    title: "Submit a Listing — OpenClaw AI Directory",
+    description: "Submit your MCP server, AI agent skill, plugin, template, or job to OpenClaw. Reach thousands of AI builders and Claude users.",
+    canonical: "https://openclaw.io/submit",
+  });
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<"mcp_server" | "skill" | "plugin" | "template" | "job">("mcp_server");
   const [category, setCategory] = useState("");
